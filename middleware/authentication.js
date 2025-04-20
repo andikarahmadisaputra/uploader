@@ -3,7 +3,7 @@ module.exports = async (req, res, next) => {
   console.log("Checking auth middleware at:", req.originalUrl);
   if (!req.session.user) {
     req.session.flash = { error: ["Please login first!"] };
-    res.redirect("/login");
+    return res.redirect("/login");
   } else {
     const user = await User.findOne({
       include: [
