@@ -1,0 +1,38 @@
+<%- include('./partials/header', {title: "Home"}) %> <%-
+include('./partials/navbar') %>
+
+<div class="container">
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <% if (error_msg) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% error_msg.forEach(msg => { %>
+          <li><%= msg %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %> <% if (success_msg) { %>
+      <div class="alert alert-success"><%= success_msg %></div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h2>Share <%= file.name %> With</h2>
+      <form action="/owned/<%= file.id %>/share" method="post">
+        <% users.forEach(el => { %>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="<%= el.id %>" name="user"
+          value="<%= el.id %>" <%= file.ShareWith?.map(el => el.id).includes(el.id) ? "checked" : "" %> />
+          <label class="form-check-label" for="<%= el.id %>"><%= el.name %></label>
+        </div>
+        <% }) %>
+        <button class="btn btn-primary" type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>

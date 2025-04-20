@@ -1,0 +1,71 @@
+<%- include('./partials/header', {title: "Shared With Me"}) %> <%-
+include('./partials/navbar') %>
+
+<div class="container">
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <% if (error_msg) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% error_msg.forEach(msg => { %>
+          <li><%= msg %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %> <% if (success_msg) { %>
+      <div class="alert alert-success"><%= success_msg %></div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h2>Shared File</h2>
+      <form action="/shared" method="get">
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search"
+            name="search"
+          />
+          <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+      </form>
+      <div class="table-responsive text-nowrap">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <td>ID</td>
+              <th>Name</th>
+              <th>Owner</th>
+              <th>Created At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% user.SharedFile.filter((file) => file.name.toLowerCase().includes(search.toLowerCase())).forEach(el => { %>
+            <tr>
+              <td><%= el.id %></td>
+              <td><%= el.name %></td>
+              <td><%= el.Owner.name %></td>
+              <td><%= el.createdDate %></td>
+              <td>
+                <div class="btn-group">
+                  <a
+                    href="/shared/<%= el.id %>/download"
+                    class="btn btn-outline-success"
+                    >Download</a
+                  >
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/footer') %>
