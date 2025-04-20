@@ -1,5 +1,9 @@
 const { User, File } = require("../models/index");
-const { loginSchema } = require("../validation/schema");
+const {
+  loginSchema,
+  editUserSchema,
+  passwordUserSchema,
+} = require("../validation/schema");
 const { comparePassword } = require("../helpers/bcrypt");
 const fs = require("fs");
 const path = require("path");
@@ -291,6 +295,94 @@ class Controller {
       }
 
       res.download(filePath);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getChangeProfile(req, res, next) {
+    try {
+      res.render("profile");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async postChangeProfile(req, res, next) {
+    try {
+      if (!req.body || Object.keys(req.body).length === 0) {
+        req.session.flash = { error: "Req body is required" };
+        res.redirect("/change-profile");
+      }
+
+      const { error, value } = editUserSchema.validate(req.body);
+
+      if (error) {
+        const messages = error.details.map((err) => err.message);
+        req.session.flash = { error: messages };
+        return res.redirect("/change-profile");
+      }
+
+      const { name, username, gender } = req.body;
+
+      const user = await User.findByPk(req.session.user.id);
+      if (!user) {
+        req.session.flash = { error: ["User not found"] };
+        return res.redirect("/");
+      }
+
+      const existing = await User.findOne({ where: { username } });
+      if (existing) {
+        req.session.flash = { error: ["Username already taken"] };
+        return res.redirect("/change-profile");
+      }
+
+      await user.update({
+        name,
+        username,
+        gender,
+      });
+
+      req.session.flash = { success: "User updated successfully" };
+      res.redirect("/");
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async getChangePassword(req, res, next) {
+    try {
+      res.render("password");
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async postChangePassword(req, res, next) {
+    try {
+      if (!req.body || Object.keys(req.body).length === 0) {
+        req.session.flash = { error: "Req body is required" };
+        res.redirect("/change-profile");
+      }
+
+      const { error, value } = passwordUserSchema.validate(req.body);
+
+      if (error) {
+        const messages = error.details.map((err) => err.message);
+        req.session.flash = { error: messages };
+        return res.redirect("/change-password");
+      }
+
+      const { password } = req.body;
+
+      const user = await User.findByPk(req.session.user.id);
+      if (!user) {
+        req.session.flash = { error: ["User not found"] };
+        return res.redirect("/");
+      }
+
+      await user.update({ password });
+
+      req.session.flash = { success: "Password updated successfully" };
+      res.redirect("/");
     } catch (error) {
       next(error);
     }

@@ -25,6 +25,10 @@ router.get("/owned/:id/share", Controller.getShareOwnedFile);
 router.post("/owned/:id/share", Controller.postShareOwnedFile);
 router.get("/shared", Controller.getSharedFile);
 router.get("/shared/:id/download", Controller.getDownloadSharedFile);
+router.get("/change-password", Controller.getChangePassword);
+router.post("/change-password", Controller.postChangePassword);
+router.get("/change-profile", Controller.getChangeProfile);
+router.post("/change-profile", Controller.postChangeProfile);
 
 router.use("/admin", guardAdmin, routerAdmin);
 

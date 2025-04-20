@@ -1,4 +1,4 @@
-<%- include('./partials/header', {title: "Home"}) %> <%-
+<%- include('./partials/header', {title: "Owned File"}) %> <%-
 include('./partials/navbar') %>
 
 <div class="container">
@@ -27,7 +27,7 @@ include('./partials/navbar') %>
             placeholder="Select file"
             name="file"
           />
-          <button class="btn btn-primary" type="submit">Upload</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-upload"></i> Upload</button>
         </div>
       </form>
     </div>
@@ -44,7 +44,7 @@ include('./partials/navbar') %>
             placeholder="Search"
             name="search"
           />
-          <button class="btn btn-primary" type="submit">Search</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
         </div>
       </form>
       <div class="table-responsive text-nowrap">
@@ -66,13 +66,13 @@ include('./partials/navbar') %>
               <td>
                 <div class="btn-group">
                   <a href="/owned/<%= el.id %>/download" class="btn btn-outline-success"
-                    >Download</a
+                    ><i class="bi bi-download"> </i>Download</a
                   >
                   <a href="/owned/<%= el.id %>/share" class="btn btn-outline-primary"
-                    >Share</a
+                    ><i class="bi bi-share"></i> Share</a
                   >
                   <a href="/owned/<%= el.id %>/delete" class="btn btn-outline-danger"
-                    >Delete</a
+                    ><i class="bi bi-trash-fill"></i> Delete</a
                   >
                 </div>
               </td>

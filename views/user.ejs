@@ -64,11 +64,14 @@
                   <a href="/admin/manage-user/<%= el.id %>/detail" class="btn btn-outline-secondary"
                     >Detail</a
                   >
+                  <a href="/admin/manage-user/<%= el.id %>/reset" class="btn btn-outline-danger btn-reset"
+                    >Reset Password</a
+                  >
                   <a href="/admin/manage-user/<%= el.id %>/<%= el.status === "active" ? "inactive" : "active" %>" class="btn btn-outline-warning"
                     ><%= el.status === "active" ? "Inactived" : "Activated" %></a
                   >
                   <% if (el.status === "inactive") { %>
-                    <a href="/admin/manage-user/<%= el.id %>/delete" class="btn btn-outline-danger"
+                    <a href="/admin/manage-user/<%= el.id %>/delete" class="btn btn-outline-danger btn-delete"
                       >Delete</a
                     >
                   <% } %>
@@ -84,10 +87,20 @@
 </div>
 
 <script>
-  document.querySelectorAll(".btn-outline-danger").forEach((btn) => {
+  document.querySelectorAll(".btn-delete").forEach((btn) => {
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       const confirmed = confirm("Are you sure you want to delete this user include files ?");
+      if (confirmed) {
+        window.location.href = this.href;
+      }
+    });
+  });
+
+  document.querySelectorAll(".btn-reset").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const confirmed = confirm("Are you sure you want to reset this user's password ?");
       if (confirmed) {
         window.location.href = this.href;
       }

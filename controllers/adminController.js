@@ -1,5 +1,4 @@
 const { User, Role, File } = require("../models/index");
-const { Op } = require("sequelize");
 const { createUserSchema } = require("../validation/schema");
 const fs = require("fs").promises;
 const path = require("path");
@@ -27,7 +26,7 @@ class AdminController {
   static async getDetailUser(req, res, next) {
     try {
       if (!req.params.id || isNaN(req.params.id)) {
-        req.session.flash = { error: ["Id file not valid"] };
+        req.session.flash = { error: ["User ID is not valid"] };
         return res.redirect("/owned");
       }
 
@@ -68,7 +67,7 @@ class AdminController {
   static async postAddUser(req, res, next) {
     try {
       if (!req.body || Object.keys(req.body).length === 0) {
-        req.session.flash = { error: "Req body required" };
+        req.session.flash = { error: "Req body is required" };
         res.redirect("/admin/manage-user/add");
       }
 
@@ -81,6 +80,12 @@ class AdminController {
       }
 
       const { username, password, name, gender } = req.body;
+
+      const existing = await User.findOne({ where: { username } });
+      if (existing) {
+        req.session.flash = { error: ["Username already taken"] };
+        return res.redirect("/admin/manage-user/add");
+      }
 
       const user = await User.create({
         username,
@@ -102,7 +107,7 @@ class AdminController {
   static async getActivatedUser(req, res, next) {
     try {
       if (!req.params.id || isNaN(req.params.id)) {
-        req.session.flash = { error: ["Id file not valid"] };
+        req.session.flash = { error: ["User ID is not valid"] };
         return res.redirect("/admin/manage-user");
       }
 
@@ -130,7 +135,7 @@ class AdminController {
   static async getInactivatedUser(req, res, next) {
     try {
       if (!req.params.id || isNaN(req.params.id)) {
-        req.session.flash = { error: ["Id file not valid"] };
+        req.session.flash = { error: ["User ID is not valid"] };
         return res.redirect("/admin/manage-user");
       }
 
@@ -158,7 +163,7 @@ class AdminController {
   static async getDeleteUser(req, res, next) {
     try {
       if (!req.params.id || isNaN(req.params.id)) {
-        req.session.flash = { error: ["Id file not valid"] };
+        req.session.flash = { error: ["User ID is not valid"] };
         return res.redirect("/admin/manage-user");
       }
 
@@ -188,6 +193,28 @@ class AdminController {
       req.session.flash = {
         success: `User ${user.name} include files deleted successfully`,
       };
+      res.redirect("/admin/manage-user");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getResetPasswordUser(req, res, next) {
+    try {
+      if (!req.params.id || isNaN(req.params.id)) {
+        req.session.flash = { error: ["User ID is not valid"] };
+        return res.redirect("/admin/manage-user");
+      }
+
+      const user = await User.findByPk(req.params.id);
+      if (!user) {
+        req.session.flash = { error: ["User not found"] };
+        return res.redirect("/admin/manage-user");
+      }
+
+      await user.update({ password: "password" });
+
+      req.session.flash = { success: "Password reset successfully" };
       res.redirect("/admin/manage-user");
     } catch (error) {
       next(error);

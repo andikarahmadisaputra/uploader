@@ -6,6 +6,7 @@ module.exports = async (req, res, next) => {
     return res.redirect("/login");
   } else {
     const user = await User.findOne({
+      attributes: { exclude: ["password"] },
       include: [
         { model: Role, as: "Roles" },
         { model: File, as: "OwnedFile" },
