@@ -1,0 +1,16 @@
+[
+  {
+    "username": "andika",
+    "password": "P@ssw0rd",
+    "name": "Andika Rahmadi Saputra",
+    "gender": "male",
+    "status": "active"
+  },
+  {
+    "username": "user",
+    "password": "password",
+    "name": "User Non Admin",
+    "gender": "male",
+    "status": "active"
+  }
+]

@@ -1,0 +1,149 @@
+<%- include('./partials/header', {title: "Manage User"}) %>
+<%- include('./partials/navbar') %>
+
+<div class="container">
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <% if (error_msg) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% error_msg.forEach(msg => { %>
+          <li><%= msg %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %> <% if (success_msg) { %>
+      <div class="alert alert-success"><%= success_msg %></div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <h2><%= userDetail.name %></h2>
+      <h4 class="text-secondary">
+        <%= Array.isArray(userDetail.Roles) ? userDetail.Roles.map(el => el.name).join(", ") : "-" %>
+      </h4>
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#detail"
+            >Detail</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#owned"
+            >Owned File</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#shared"
+            >Shared File</a
+          >
+        </li>
+      </ul>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div class="tab-pane container active" id="detail">
+            <h5>ID: <%= userDetail.id %></h5>
+            <h5>Name: <%= userDetail.name %></h5>
+            <h5>Gender: <%= userDetail.gender %></h5>
+            <h5>Role: <%= Array.isArray(userDetail.Roles) ? userDetail.Roles.map(el => el.name).join(", ") : "-" %></h5>
+            <h5>Status: <%= userDetail.status %></h5>
+            <h5>Created At: <%= userDetail.createdDate %></h5>
+        </div>
+
+        <div class="tab-pane container fade" id="owned">
+          <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <td>ID</td>
+                  <th>Name</th>
+                  <th>Created At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (Array.isArray(userDetail.OwnedFile)) { %>
+                  <% userDetail.OwnedFile.forEach(el => { %>
+                    <tr>
+                        <td><%= el.id %></td>
+                        <td><%= el.name %></td>
+                        <td><%= el.createdDate %></td>
+                        <td>
+                            <div class="btn-group">
+                            <a
+                                href="/admin/manage-user/<%= userDetail.id %>/detail/<%= el.id %>/delete"
+                                class="btn btn-outline-danger"
+                                >Delete</a
+                            >
+                            </div>
+                        </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-pane container fade" id="shared">
+          <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <td>ID</td>
+                  <th>Name</th>
+                  <th>Owner</th>
+                  <th>Created At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (Array.isArray(userDetail.SharedFile)) { %>
+                  <% userDetail.SharedFile.forEach(el => { %>
+                    <tr>
+                        <td><%= el.id %></td>
+                        <td><%= el.name %></td>
+                        <td><%= el.Owner.name %></td>
+                        <td><%= el.createdDate %></td>
+                        <td>
+                            <div class="btn-group">
+                            <a
+                                href="/admin/manage-user/<%= userDetail.id %>/detail/<%= el.id %>/remove"
+                                class="btn btn-outline-danger"
+                                >Remove</a
+                            >
+                            </div>
+                        </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    document.querySelectorAll(".btn-outline-danger").forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const confirmed = confirm(
+          "Are you sure you want to delete this file ?"
+        );
+        if (confirmed) {
+          window.location.href = this.href;
+        }
+      });
+    });
+  </script>
+
+<%- include('./partials/footer') %>
