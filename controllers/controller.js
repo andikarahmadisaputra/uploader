@@ -28,8 +28,8 @@ class Controller {
   static async postLogin(req, res, next) {
     try {
       if (!req.body || Object.keys(req.body).length === 0) {
-        req.session.flash = { error: "Invalid username or password" };
-        res.redirect("/login");
+        req.session.flash = { error: ["Invalid username or password"] };
+        return res.redirect("/login");
       }
 
       const { error, value } = loginSchema.validate(req.body);
