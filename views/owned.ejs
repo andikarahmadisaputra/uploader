@@ -1,5 +1,5 @@
-<%- include('./partials/header', {title: "Owned File"}) %> <%-
-include('./partials/navbar') %>
+<%- include('./partials/header', {title: "Owned File"}) %>
+<%- include('./partials/navbar') %>
 
 <div class="container">
   <div class="row mt-4">
@@ -58,7 +58,7 @@ include('./partials/navbar') %>
             </tr>
           </thead>
           <tbody>
-            <% user.OwnedFile.filter((file) => file.name.toLowerCase().includes(search.toLowerCase())).forEach(el => { %>
+            <% ownedFiles.forEach(el => { %>
             <tr>
               <td><%= el.id %></td>
               <td><%= el.name %></td>

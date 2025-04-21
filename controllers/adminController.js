@@ -1,5 +1,6 @@
 const { User, Role, File } = require("../models/index");
 const { createUserSchema } = require("../validation/schema");
+const { Op, fn, col } = require("sequelize");
 const fs = require("fs").promises;
 const path = require("path");
 class AdminController {
@@ -7,17 +8,54 @@ class AdminController {
     try {
       const { search = "" } = req.query;
 
-      const users = await User.findAll({
-        attributes: { exclude: ["username", "password"] },
+      let options = {
+        attributes: {
+          exclude: ["username", "password", "updatedAt"],
+          include: [
+            [fn("COUNT", col("OwnedFile.id")), "ownedFileCount"],
+            [fn("COUNT", col("SharedFile.id")), "sharedFileCount"],
+          ],
+        },
         include: [
-          { model: Role, as: "Roles" },
-          { model: File, as: "OwnedFile" },
-          { model: File, as: "SharedFile" },
+          {
+            model: File,
+            as: "OwnedFile",
+            attributes: [],
+            required: false,
+          },
+          {
+            model: File,
+            as: "SharedFile",
+            attributes: [],
+            required: false,
+          },
+          {
+            model: Role,
+            as: "Roles",
+            attributes: ["name"],
+          },
+        ],
+        group: [
+          "User.id",
+          "Roles.id",
+          "Roles->UserRoles.RoleId",
+          "Roles->UserRoles.UserId",
         ],
         order: [["name", "ASC"]],
-      });
+        subQuery: false,
+      };
 
-      res.render("user", { users, search });
+      if (search) {
+        options.where = {
+          name: {
+            [Op.iLike]: `%${search}%`,
+          },
+        };
+      }
+
+      const users = await User.findAll(options);
+
+      res.render("user", { users });
     } catch (error) {
       next(error);
     }
@@ -41,7 +79,7 @@ class AdminController {
             include: {
               model: User,
               as: "Owner",
-              attributes: { exclude: ["username", "password"] },
+              attributes: { exclude: ["username", "password", "updatedAt"] },
             },
           },
         ],
@@ -81,7 +119,10 @@ class AdminController {
 
       const { username, password, name, gender } = req.body;
 
-      const existing = await User.findOne({ where: { username } });
+      const existing = await User.findOne({
+        attributes: ["username"],
+        where: { username },
+      });
       if (existing) {
         req.session.flash = { error: ["Username already taken"] };
         return res.redirect("/admin/manage-user/add");
@@ -139,6 +180,11 @@ class AdminController {
         return res.redirect("/admin/manage-user");
       }
 
+      if (req.params.id == req.session.auth.id) {
+        req.session.flash = { error: ["You can not inactivated yourself"] };
+        return res.redirect("/admin/manage-user");
+      }
+
       const user = await User.findByPk(req.params.id);
       if (!user) {
         req.session.flash = { error: ["User not found"] };
@@ -164,6 +210,11 @@ class AdminController {
     try {
       if (!req.params.id || isNaN(req.params.id)) {
         req.session.flash = { error: ["User ID is not valid"] };
+        return res.redirect("/admin/manage-user");
+      }
+
+      if (req.params.id == req.session.auth.id) {
+        req.session.flash = { error: ["You can not delete yourself"] };
         return res.redirect("/admin/manage-user");
       }
 

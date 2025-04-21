@@ -18,7 +18,7 @@
           <a class="nav-link" href="/shared"><i class="bi bi-share-fill"></i> Shared File</a>
         </li>
 
-        <% if (Array.isArray(user.Roles) && user.Roles.some(role => role.name === "admin")) { %>
+        <% if (auth && auth.roles.some(role => role === "admin")) { %>
           <li class="nav-item">
             <a class="nav-link" href="/admin/manage-user"><i class="bi bi-person-gear"></i> Manage User</a>
           </li>

@@ -37,11 +37,11 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <td>ID</td>
+              <th>ID</th>
               <th>Name</th>
-              <td>Gender</td>
-              <td>Roles</td>
-              <td>Status</td>
+              <th>Gender</th>
+              <th>Roles</th>
+              <th>Status</th>
               <th>Owned File</th>
               <th>Shared File</th>
               <th>Created At</th>
@@ -49,15 +49,15 @@
             </tr>
           </thead>
           <tbody>
-            <% users.filter((el) => el.name.toLowerCase().includes(search.toLowerCase())).forEach(el => { %>
+            <% users.forEach(el => { %>
             <tr>
               <td><%= el.id %></td>
               <td><%= el.name %></td>
               <td><%= el.gender %></td>
               <td><%= Array.isArray(el.Roles) ? el.Roles.map(el => el.name).join(", ") : "-" %></td>
               <td class="<%= el.status === "active" ? "text-success" : "text-danger" %>"><%= el.status %></td>
-              <td><%= Array.isArray(el.OwnedFile) ? el.OwnedFile.length : "0"  %></td>
-              <td><%= Array.isArray(el.SharedFile) ? el.SharedFile.length : "0"  %></td>
+              <td><%= el.getDataValue("ownedFileCount") %></td>
+              <td><%= el.getDataValue("sharedFileCount") %></td>
               <td><%= el.createdDate %></td>
               <td>
                 <div class="btn-group">

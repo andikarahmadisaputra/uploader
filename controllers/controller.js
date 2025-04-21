@@ -1,4 +1,4 @@
-const { User, File } = require("../models/index");
+const { User, Role, File } = require("../models/index");
 const {
   loginSchema,
   editUserSchema,
@@ -11,7 +11,8 @@ const { Op } = require("sequelize");
 class Controller {
   static async home(req, res, next) {
     try {
-      res.render("home");
+      const auth = req.session.auth;
+      res.render("home", { auth });
     } catch (error) {
       next(error);
     }
@@ -43,6 +44,10 @@ class Controller {
       const { username, password } = req.body;
 
       const user = await User.findOne({
+        include: {
+          model: Role,
+          as: "Roles",
+        },
         where: {
           username,
         },
@@ -53,7 +58,7 @@ class Controller {
         return res.redirect("/login");
       }
 
-      const isValidPassword = comparePassword(password, user.password);
+      const isValidPassword = await comparePassword(password, user.password);
 
       if (!isValidPassword) {
         req.session.flash = { error: ["Invalid password"] };
@@ -66,7 +71,10 @@ class Controller {
         return res.redirect("/login");
       }
 
-      req.session.user = user;
+      req.session.auth = {
+        id: user.id,
+        roles: Array.isArray(user.Roles) ? user.Roles.map((el) => el.name) : [],
+      };
 
       req.session.flash = { success: `Welcome ${user.name}` };
       res.redirect("/");
@@ -77,7 +85,7 @@ class Controller {
 
   static async getLogout(req, res, next) {
     try {
-      delete req.session.user;
+      delete req.session.auth;
       req.session.flash = { success: "Logout successful" };
       res.redirect("/login");
     } catch (error) {
@@ -88,7 +96,23 @@ class Controller {
   static async getOwnedFile(req, res, next) {
     try {
       const { search = "" } = req.query;
-      res.render("owned", { search });
+
+      let options = {
+        where: {
+          UserId: req.session.auth.id,
+        },
+        order: [["name", "asc"]],
+      };
+
+      if (search) {
+        options.where.name = {
+          [Op.like]: `%${search}%`,
+        };
+      }
+
+      const ownedFiles = await File.findAll(options);
+
+      res.render("owned", { ownedFiles });
     } catch (error) {
       next(error);
     }
@@ -104,7 +128,7 @@ class Controller {
       await File.create({
         name: req.file.originalname,
         url: `/uploads/${req.file.filename}`,
-        UserId: req.session.user.id,
+        UserId: req.session.auth.id,
       });
 
       req.session.flash = {
@@ -126,7 +150,7 @@ class Controller {
       const file = await File.findOne({
         where: {
           id: req.params.id,
-          UserId: req.session.user.id,
+          UserId: req.session.auth.id,
         },
       });
 
@@ -157,7 +181,7 @@ class Controller {
       const file = await File.findOne({
         where: {
           id: req.params.id,
-          UserId: req.session.user.id,
+          UserId: req.session.auth.id,
         },
       });
 
@@ -195,13 +219,15 @@ class Controller {
       }
 
       const file = await File.findOne({
+        attributes: ["id", "name"],
         include: {
           model: User,
           as: "SharedWith",
+          attributes: ["id"],
         },
         where: {
           id: req.params.id,
-          UserId: req.session.user.id,
+          UserId: req.session.auth.id,
         },
       });
 
@@ -214,7 +240,7 @@ class Controller {
         attributes: ["id", "name"],
         where: {
           id: {
-            [Op.ne]: req.session.user.id,
+            [Op.ne]: req.session.auth.id,
           },
         },
       });
@@ -235,7 +261,7 @@ class Controller {
       const file = await File.findOne({
         where: {
           id: req.params.id,
-          UserId: req.session.user.id,
+          UserId: req.session.auth.id,
         },
       });
 
@@ -257,7 +283,36 @@ class Controller {
   static async getSharedFile(req, res, next) {
     try {
       const { search = "" } = req.query;
-      res.render("shared", { search });
+      let options = {
+        include: [
+          {
+            model: User,
+            as: "Owner",
+            attributes: ["name"],
+          },
+          {
+            model: User,
+            as: "SharedWith",
+            attributes: ["id"],
+            where: {
+              id: req.session.auth.id,
+            },
+          },
+        ],
+        order: [["name", "ASC"]],
+      };
+
+      if (search) {
+        options.where = {
+          name: {
+            [Op.like]: `%${search}%`,
+          },
+        };
+      }
+
+      const sharedFiles = await File.findAll(options);
+
+      res.render("shared", { sharedFiles });
     } catch (error) {
       next(error);
     }
@@ -274,8 +329,9 @@ class Controller {
         include: {
           model: User,
           as: "SharedWith",
+          attributes: ["id"],
           where: {
-            id: req.session.user.id,
+            id: req.session.auth.id,
           },
         },
         where: {
@@ -302,7 +358,13 @@ class Controller {
 
   static async getChangeProfile(req, res, next) {
     try {
-      res.render("profile");
+      const user = await User.findByPk(req.session.auth.id);
+      if (!user) {
+        req.session.flash = { error: ["User not found"] };
+        return res.redirect("/");
+      }
+
+      res.render("profile", { user });
     } catch (error) {
       next(error);
     }
@@ -325,13 +387,21 @@ class Controller {
 
       const { name, username, gender } = req.body;
 
-      const user = await User.findByPk(req.session.user.id);
+      const user = await User.findByPk(req.session.auth.id);
       if (!user) {
         req.session.flash = { error: ["User not found"] };
         return res.redirect("/");
       }
 
-      const existing = await User.findOne({ where: { username } });
+      const existing = await User.findOne({
+        attributes: ["username"],
+        where: {
+          username,
+          id: {
+            [Op.ne]: user.id,
+          },
+        },
+      });
       if (existing) {
         req.session.flash = { error: ["Username already taken"] };
         return res.redirect("/change-profile");
@@ -373,7 +443,7 @@ class Controller {
 
       const { password } = req.body;
 
-      const user = await User.findByPk(req.session.user.id);
+      const user = await User.findByPk(req.session.auth.id);
       if (!user) {
         req.session.flash = { error: ["User not found"] };
         return res.redirect("/");

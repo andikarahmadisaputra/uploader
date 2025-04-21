@@ -111,11 +111,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        beforeCreate: (instance, options) => {
-          instance.password = hashPassword(instance.password);
+        beforeCreate: async (instance, options) => {
+          instance.password = await hashPassword(instance.password);
         },
-        beforeUpdate: (instance, options) => {
-          instance.password = hashPassword(instance.password);
+        beforeUpdate: async (instance, options) => {
+          instance.password = await hashPassword(instance.password);
         },
       },
       sequelize,
